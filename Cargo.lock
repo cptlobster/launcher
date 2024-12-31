@@ -1697,6 +1697,7 @@ dependencies = [
  "egui",
  "egui_extras",
  "env_logger",
+ "shlex",
 ]
 
 [[package]]

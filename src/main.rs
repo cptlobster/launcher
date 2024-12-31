@@ -3,6 +3,7 @@ use eframe::egui;
 
 use std::process::{Command};
 use std::os::unix::process::CommandExt;
+use shlex::split;
 
 fn main() -> eframe::Result {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
@@ -22,18 +23,22 @@ fn main() -> eframe::Result {
     )
 }
 
+#[derive(Default)]
 struct MyApp {
     command: String,
     error: String,
 }
 
-impl Default for MyApp {
-    fn default() -> Self {
-        Self {
-            command: "".to_owned(),
-            error: "".to_owned(),
-        }
+fn exec_sh(command: &str) -> String {
+    match split(command).as_deref() {
+        Some([cmd, args @ ..]) => {
+            let err: Error = Command::new(cmd).args(args).exec();
+            format!("Error executing {}\n{}", command, err)
+        },
+        Some([]) => "No command specified".to_string(),
+        None => format!("Error parsing command '{}'", command),
     }
+
 }
 
 impl eframe::App for MyApp {
@@ -45,8 +50,7 @@ impl eframe::App for MyApp {
                 ui.text_edit_singleline(&mut self.command)
                     .labelled_by(name_label.id);
                 if ui.button("Run").clicked() {
-                    let err: Error = Command::new(self.command.clone()).exec();
-                    self.error = format!("Error executing {}\n{}", self.command, err)
+                    exec_sh(&self.command);
                 };
             });
             ui.colored_label(egui::Color32::RED, self.error.to_owned());
