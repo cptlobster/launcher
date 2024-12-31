@@ -1,3 +1,4 @@
+use std::io::Error;
 use eframe::egui;
 
 use std::process::{Command};
@@ -23,12 +24,14 @@ fn main() -> eframe::Result {
 
 struct MyApp {
     command: String,
+    error: String,
 }
 
 impl Default for MyApp {
     fn default() -> Self {
         Self {
             command: "".to_owned(),
+            error: "".to_owned(),
         }
     }
 }
@@ -42,9 +45,11 @@ impl eframe::App for MyApp {
                 ui.text_edit_singleline(&mut self.command)
                     .labelled_by(name_label.id);
                 if ui.button("Run").clicked() {
-                    Command::new(self.command.clone()).exec();
+                    let err: Error = Command::new(self.command.clone()).exec();
+                    self.error = format!("Error executing {}\n{}", self.command, err)
                 };
             });
+            ui.colored_label(egui::Color32::RED, self.error.to_owned());
         });
     }
 }
