@@ -1,3 +1,5 @@
+mod indexer;
+
 use std::io::Error;
 use eframe::egui;
 
